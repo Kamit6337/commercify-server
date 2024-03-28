@@ -8,25 +8,6 @@ import axios from "axios";
 import path from "path";
 import fs from "fs";
 
-// NOTE: UPDATE USER
-export const updateUser = catchAsyncError(async (req, res) => {
-  if (req.user) {
-    const { id } = req.user;
-
-    await User.findOneAndUpdate(
-      {
-        OAuthId: id,
-      },
-      {
-        $inc: { loginCount: 1 },
-        lastLogin: Date.now(),
-      }
-    );
-  }
-
-  res.redirect(environment.CLIENT_CHECKLOGIN_URL);
-});
-
 // NOTE: LOGIN SUCCESS
 export const loginSuccess = catchAsyncError(async (req, res, next) => {
   if (!req.user)
@@ -91,9 +72,8 @@ export const loginSuccess = catchAsyncError(async (req, res, next) => {
       httpOnly: true,
     });
 
-    res.status(200).json({
-      message: "OAuth Login Successfully",
-    });
+    res.redirect(environment.CLIENT_URL);
+
     return;
   }
 
@@ -108,9 +88,8 @@ export const loginSuccess = catchAsyncError(async (req, res, next) => {
     httpOnly: true,
   });
 
-  res.status(200).json({
-    message: "OAuth Login Successfully",
-  });
+  res.redirect(environment.CLIENT_URL);
+
   return;
 });
 

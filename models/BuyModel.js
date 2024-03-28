@@ -3,61 +3,35 @@ import mongoose from "mongoose";
 const buySchema = new mongoose.Schema(
   {
     product: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Product",
       required: true,
     },
     user: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
       required: true,
-    },
-    productTitle: {
-      type: String,
-      required: true,
+      select: false,
     },
     price: {
       type: Number,
       required: true,
     },
-    sellingPrice: {
-      type: Number,
-      required: true,
-    },
-    buyDate: {
-      type: Date,
-      default: Date.now(),
-    },
     quantity: {
       type: Number,
       default: 1,
     },
-    delievered: {
+    isDelievered: {
       type: Boolean,
       default: false,
     },
-    cancelled: {
+    isCancelled: {
       type: Boolean,
       default: false,
     },
-    returned: {
+    isReturned: {
       type: Boolean,
       default: false,
-    },
-    address: {
-      localAdd: String,
-      district: String,
-      state: String,
-      nation: {
-        type: String,
-        default: "India",
-      },
-      PIN: {
-        type: String,
-        required: true,
-      },
-      mobile: {
-        type: Number,
-        required: true,
-      },
     },
   },
   {

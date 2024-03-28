@@ -10,6 +10,8 @@ import userRouter from "./routes/userRoutes.js";
 import addressRouter from "./routes/addressRoutes.js";
 import cartRouter from "./routes/cartRoutes.js";
 import wishlistRouter from "./routes/wishlistRoutes.js";
+import paymentRouter from "./routes/paymentRoutes.js";
+import stripeRouter from "./routes/stripeRoutes.js";
 import protectUserRoutes from "./middlewares/protectUserRoutes.js";
 import globalMiddlewares from "./middlewares/globalMiddlwares.js";
 import "./utils/passport.js";
@@ -21,14 +23,16 @@ globalMiddlewares(app);
 
 // NOTE: DIFFERENT ROUTES
 app.use("/auth", authRouter);
+
 app.use("/products", productRouter);
 app.use("/ratings", protectUserRoutes, ratingRouter);
 app.use("/user", protectUserRoutes, userRouter);
 app.use("/address", protectUserRoutes, addressRouter);
 app.use("/buy", protectUserRoutes, buyRouter);
-app.use("/cart", cartRouter);
-app.use("/wishlist", wishlistRouter);
-// app.use("/doubleAuth", doubleAuthRouter);
+app.use("/cart", protectUserRoutes, cartRouter);
+app.use("/wishlist", protectUserRoutes, wishlistRouter);
+app.use("/payment", protectUserRoutes, paymentRouter);
+app.use("/stripe", stripeRouter);
 
 // NOTE: UNIDENTIFIED ROUTES
 app.all("*", (req, res, next) => {

@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import validation from "validator";
+import bcrypt from "bcryptjs";
 
 const userSchema = new mongoose.Schema(
   {
@@ -72,6 +73,11 @@ const userSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+userSchema.methods.changePassword = function (givenPassword) {
+  const boolean = bcrypt.compareSync(givenPassword, this.password);
+  return boolean;
+};
 
 const User = mongoose.model("User", userSchema);
 

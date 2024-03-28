@@ -1,8 +1,9 @@
-import  User  from "../../../models/UserModel.js";
+import User from "../../../models/UserModel.js";
 import HandleGlobalError from "../../../utils/HandleGlobalError.js";
 import catchAsyncError from "../../../lib/catchAsyncError.js";
 import { environment } from "../../../utils/environment.js";
 import generateWebToken from "../../../utils/auth/generateWebToken.js";
+import bcrypt from "bcryptjs";
 
 const signup = catchAsyncError(async (req, res, next) => {
   const { name, email, password } = req.body;
@@ -11,11 +12,13 @@ const signup = catchAsyncError(async (req, res, next) => {
     return next(new HandleGlobalError("Not provided all field", 404));
   }
 
+  const hashPassword = bcrypt.hashSync(password, environment.SALT_ROUND);
+
   // MARK: CREATE USER
   const createUser = await User.create({
     name,
     email,
-    password,
+    password: hashPassword,
   });
 
   if (!createUser) {
