@@ -21,6 +21,11 @@ const buySchema = new mongoose.Schema(
       type: Number,
       default: 1,
     },
+    address: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Address",
+      required: true,
+    },
     isDelievered: {
       type: Boolean,
       default: false,

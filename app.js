@@ -4,6 +4,7 @@ import globalErrorHandler from "./middlewares/globalErrorHandler.js";
 import HandleGlobalError from "./utils/HandleGlobalError.js";
 import authRouter from "./routes/authRoutes.js";
 import productRouter from "./routes/productRoutes.js";
+import categoryRouter from "./routes/categoryRoutes.js";
 import buyRouter from "./routes/buyRoutes.js";
 import ratingRouter from "./routes/ratingRoutes.js";
 import userRouter from "./routes/userRoutes.js";
@@ -25,6 +26,7 @@ globalMiddlewares(app);
 app.use("/auth", authRouter);
 
 app.use("/products", productRouter);
+app.use("/category", categoryRouter);
 app.use("/ratings", protectUserRoutes, ratingRouter);
 app.use("/user", protectUserRoutes, userRouter);
 app.use("/address", protectUserRoutes, addressRouter);

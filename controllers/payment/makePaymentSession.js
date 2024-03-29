@@ -5,9 +5,7 @@ import generateWebToken from "../../utils/auth/generateWebToken.js";
 import HandleGlobalError from "../../utils/HandleGlobalError.js";
 import Product from "../../models/ProductModel.js";
 
-const Stripe = stripe(
-  "sk_test_51OuirNSGG7QgSLfOWtwPd2mS1WRZcRiFe89Z7Jw8jKAMblgouAxYqbbepsnoFHQM0pYxPSFPSizeBoDk322zsgBp007t19zNZr"
-);
+const Stripe = stripe(environment.STRIPE_SECRET_KEY);
 
 const makePaymentSession = catchAsyncError(async (req, res, next) => {
   const user = req.user;
@@ -24,6 +22,8 @@ const makePaymentSession = catchAsyncError(async (req, res, next) => {
     _id: { $in: productIds },
   }).lean();
 
+  let productsForToken = [];
+
   let lineItems = findProducts.map((product) => {
     const { _id, title, description, price, discountPercentage, thumbnail } =
       product;
@@ -34,6 +34,13 @@ const makePaymentSession = catchAsyncError(async (req, res, next) => {
     const discountedPrice = Math.round(
       (price * (100 - roundDiscountPercent)) / 100
     );
+
+    const obj = {
+      id: _id,
+      quantity: findQuantity.quantity,
+      price: discountedPrice,
+    };
+    productsForToken = [...productsForToken, obj];
 
     return {
       price_data: {
@@ -77,7 +84,7 @@ const makePaymentSession = catchAsyncError(async (req, res, next) => {
   });
 
   const token = generateWebToken(
-    { products, address },
+    { products: productsForToken, address },
     { expires: 10000000000 }
   );
 

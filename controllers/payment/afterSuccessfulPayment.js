@@ -1,21 +1,50 @@
+import Buy from "../../models/BuyModel.js";
+import Address from "../../models/AddressModel.js";
 import catchAsyncError from "../../lib/catchAsyncError.js";
 import HandleGlobalError from "../../utils/HandleGlobalError.js";
 import verifyWebToken from "../../utils/auth/verifyWebToken.js";
 
 const afterSuccessfulPayment = catchAsyncError(async (req, res, next) => {
+  const userId = req.userId;
   const { token } = req.query;
 
   if (!token) {
     return next(new HandleGlobalError("Token is not provided", 404));
   }
 
-  const decoded = verifyWebToken(token);
+  const { products, address: addressFromToken } = verifyWebToken(token);
 
-  console.log("decoded", decoded);
+  const { name, mobile, address, district, state, pinCode } = addressFromToken;
+
+  const addNewAddress = await Address.create({
+    name,
+    mobile: Number(mobile),
+    address,
+    state,
+    district,
+    pinCode: Number(pinCode),
+  });
+
+  const buyProducts = await Promise.all(
+    products.map(async (product) => {
+      const { id, quantity, price } = product;
+
+      const newBuyProduct = await Buy.create({
+        user: userId,
+        product: id,
+        price: Number(price),
+        quantity: Number(quantity),
+        address: addNewAddress,
+      });
+
+      return newBuyProduct;
+    })
+  );
 
   res.status(200).json({
     message: "Payment Successful",
-    data: decoded,
+    address: addressFromToken,
+    products: buyProducts,
   });
 });
 
