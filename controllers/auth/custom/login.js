@@ -77,8 +77,8 @@ const login = catchAsyncError(async (req, res, next) => {
   res.cookie("token", token, {
     expires: new Date(Date.now() + environment.JWT_EXPIRES_IN),
     httpOnly: true,
-    domain: ".commercify-client.onrender.com",
     secure: true,
+    sameSite: "None",
   });
 
   res.status(200).json({
