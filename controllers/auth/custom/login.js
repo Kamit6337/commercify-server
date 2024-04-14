@@ -1,4 +1,4 @@
-import  User  from "../../../models/UserModel.js";
+import User from "../../../models/UserModel.js";
 import HandleGlobalError from "../../../utils/HandleGlobalError.js";
 import catchAsyncError from "../../../lib/catchAsyncError.js";
 import generateWebToken from "../../../utils/auth/generateWebToken.js";
@@ -77,6 +77,8 @@ const login = catchAsyncError(async (req, res, next) => {
   res.cookie("token", token, {
     expires: new Date(Date.now() + environment.JWT_EXPIRES_IN),
     httpOnly: true,
+    domain: ".commercify-client.onrender.com",
+    secure: true,
   });
 
   res.status(200).json({

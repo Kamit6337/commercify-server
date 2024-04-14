@@ -70,6 +70,8 @@ export const loginSuccess = catchAsyncError(async (req, res, next) => {
     res.cookie("token", token, {
       expires: new Date(Date.now() + environment.JWT_EXPIRES_IN),
       httpOnly: true,
+      domain : ".commercify-client.onrender.com",
+      secure : true
     });
 
     res.redirect(environment.CLIENT_URL);
@@ -86,6 +88,8 @@ export const loginSuccess = catchAsyncError(async (req, res, next) => {
   res.cookie("token", token, {
     expires: new Date(Date.now() + environment.JWT_EXPIRES_IN),
     httpOnly: true,
+    domain : ".commercify-client.onrender.com",
+    secure : true
   });
 
   res.redirect(environment.CLIENT_URL);
