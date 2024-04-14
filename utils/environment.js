@@ -12,5 +12,4 @@ export const environment = {
   JWT_SECRET_KEY: process.env.JWT_SECRET_KEY,
   JWT_EXPIRES_IN: Number(process.env.JWT_EXPIRES_IN),
   SALT_ROUND: +process.env.SALT_ROUND,
-  STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
 };
