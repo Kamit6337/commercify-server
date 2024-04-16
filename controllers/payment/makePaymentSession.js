@@ -44,7 +44,7 @@ const makePaymentSession = catchAsyncError(async (req, res, next) => {
 
     return {
       price_data: {
-        currency: "inr",
+        currency: "usd",
         unit_amount: discountedPrice * 100,
         product_data: {
           name: title,
@@ -56,10 +56,10 @@ const makePaymentSession = catchAsyncError(async (req, res, next) => {
     };
   });
 
-  const deliveryCharge = 40;
+  const deliveryCharge = 4; // 4 dollars
   const delieveryObj = {
     price_data: {
-      currency: "inr",
+      currency: "usd",
       unit_amount: deliveryCharge * 100,
       product_data: {
         name: "Delivery Charges",
