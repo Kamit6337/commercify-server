@@ -8,6 +8,8 @@ import axios from "axios";
 import path from "path";
 import fs from "fs";
 
+const PRODUCTION = "production";
+
 // NOTE: LOGIN SUCCESS
 export const loginSuccess = catchAsyncError(async (req, res, next) => {
   if (!req.user)
@@ -67,12 +69,17 @@ export const loginSuccess = catchAsyncError(async (req, res, next) => {
       role: createUser.role,
     });
 
-    res.cookie("token", token, {
-      expires: new Date(Date.now() + environment.JWT_EXPIRES_IN),
+    const cookieOptions = {
+      maxAge: environment.JWT_EXPIRES_IN,
       httpOnly: true,
-      sameSite: "None",
-      secure: true,
-    });
+    };
+
+    if (environment.NODE_ENV === PRODUCTION) {
+      cookieOptions.secure = true;
+      cookieOptions.sameSite = "None";
+    }
+
+    res.cookie("token", token, cookieOptions);
 
     res.redirect(environment.CLIENT_URL);
 
@@ -85,12 +92,17 @@ export const loginSuccess = catchAsyncError(async (req, res, next) => {
     role: findUser.role,
   });
 
-  res.cookie("token", token, {
-    expires: new Date(Date.now() + environment.JWT_EXPIRES_IN),
+  const cookieOptions = {
+    maxAge: environment.JWT_EXPIRES_IN,
     httpOnly: true,
-    sameSite: "None",
-    secure: true,
-  });
+  };
+
+  if (environment.NODE_ENV === PRODUCTION) {
+    cookieOptions.secure = true;
+    cookieOptions.sameSite = "None";
+  }
+
+  res.cookie("token", token, cookieOptions);
 
   res.redirect(environment.CLIENT_URL);
 

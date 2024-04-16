@@ -54,7 +54,7 @@ const globalErrorHandler = (err, req, res, next) => {
     err.statusCode = 404;
     err.status = "Forbidden";
     err.message =
-      "Please check your token carefully. This token is unAuthorized.";
+      "Please check your token carefully. This token is unAuthorized. Please login again..";
   }
 
   if (err.message.includes("ETIMEDOUT")) {
