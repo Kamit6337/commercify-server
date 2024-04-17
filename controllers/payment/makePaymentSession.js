@@ -10,7 +10,7 @@ const Stripe = stripe(environment.STRIPE_SECRET_KEY);
 const makePaymentSession = catchAsyncError(async (req, res, next) => {
   const user = req.user;
 
-  const { products, address } = req.body;
+  const { products, address, code, exchangeRate } = req.body;
 
   if (!products || !address) {
     return next(new HandleGlobalError("Not provide all fields", 404));
@@ -30,9 +30,11 @@ const makePaymentSession = catchAsyncError(async (req, res, next) => {
 
     const findQuantity = products.find((obj) => obj.id === String(_id));
 
+    const exchangeRatePrice = Math.round(price * exchangeRate);
+
     const roundDiscountPercent = Math.round(discountPercentage);
     const discountedPrice = Math.round(
-      (price * (100 - roundDiscountPercent)) / 100
+      (exchangeRatePrice * (100 - roundDiscountPercent)) / 100
     );
 
     const obj = {
@@ -44,7 +46,7 @@ const makePaymentSession = catchAsyncError(async (req, res, next) => {
 
     return {
       price_data: {
-        currency: "usd",
+        currency: code,
         unit_amount: discountedPrice * 100,
         product_data: {
           name: title,
@@ -56,10 +58,10 @@ const makePaymentSession = catchAsyncError(async (req, res, next) => {
     };
   });
 
-  const deliveryCharge = 4; // 4 dollars
+  const deliveryCharge = Math.round(lineItems.length * exchangeRate); // 4 dollars
   const delieveryObj = {
     price_data: {
-      currency: "usd",
+      currency: code,
       unit_amount: deliveryCharge * 100,
       product_data: {
         name: "Delivery Charges",
