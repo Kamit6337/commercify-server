@@ -1,12 +1,16 @@
 import mongoose from "mongoose";
 import validation from "validator";
-import bcrypt from "bcryptjs";
 
 const userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
       required: true,
+    },
+    mobile: {
+      type: String,
+      required: true,
+      unique: true,
     },
     email: {
       type: String,
@@ -19,65 +23,20 @@ const userSchema = new mongoose.Schema(
         message: (props) => `${props.value} is not a valid email`,
       },
     },
-    password: {
+    photo: {
       type: String,
-    },
-    OAuth: {
-      type: Boolean,
-      default: false,
-    },
-    OAuthId: {
-      type: String,
-    },
-    OAuthProvider: {
-      type: String,
+      default: null,
     },
     role: {
       type: String,
       enum: ["user", "admin"],
       default: "user",
     },
-    address: [
-      {
-        localAdd: String,
-        district: String,
-        state: String,
-        nation: {
-          type: String,
-          default: "India",
-        },
-        PIN: {
-          type: String,
-          required: true,
-        },
-        mobile: {
-          type: Number,
-          required: true,
-        },
-      },
-    ],
-    loginCount: {
-      type: Number,
-      default: 1,
-    },
-    lastLogin: {
-      type: Date,
-      default: Date.now(),
-    },
-    doubleVerify: {
-      type: Boolean,
-      default: false,
-    },
   },
   {
     timestamps: true,
   }
 );
-
-userSchema.methods.changePassword = function (givenPassword) {
-  const boolean = bcrypt.compareSync(givenPassword, this.password);
-  return boolean;
-};
 
 const User = mongoose.model("User", userSchema);
 

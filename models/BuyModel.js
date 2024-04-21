@@ -30,6 +30,10 @@ const buySchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    delieveredDate: {
+      type: Date,
+      default: null,
+    },
     isCancelled: {
       type: Boolean,
       default: false,

@@ -1,11 +1,10 @@
-import catchAsyncError from "../../lib/catchAsyncError.js";
-import HandleGlobalError from "../../utils/HandleGlobalError.js";
-import generateSixDigitRandomNumber from "../../utils/javaScript/generateSixDigitRandomNumber.js";
-import { environment } from "../../utils/environment.js";
-import encrypt from "../../utils/encryption/encrypt.js";
+import catchAsyncError from "../../../lib/catchAsyncError.js";
+import HandleGlobalError from "../../../utils/HandleGlobalError.js";
+import { environment } from "../../../utils/environment.js";
 import twilio from "twilio";
-import User from "../../models/UserModel.js";
-import decrypt from "../../utils/encryption/decrypt.js";
+import generateSixDigitRandomNumber from "../../../utils/javaScript/generateSixDigitRandomNumber.js";
+import encrypt from "../../../utils/encryption/encrypt.js";
+import decrypt from "../../../utils/encryption/decrypt.js";
 
 const client = twilio(
   environment.TWILIO_ACCOUNT_SID,
@@ -15,13 +14,11 @@ const client = twilio(
   }
 );
 
-const updateUserProfile = catchAsyncError(async (req, res, next) => {
-  const userId = req.userId;
-
+const signupSendOTP = catchAsyncError(async (req, res, next) => {
   let { name, email, mobile, token } = req.body;
 
   if (!mobile && !token) {
-    return next(new HandleGlobalError("Fields are not provided", 404));
+    return next(new HandleGlobalError("All fields is not provided", 404));
   }
 
   if (token) {
@@ -29,19 +26,6 @@ const updateUserProfile = catchAsyncError(async (req, res, next) => {
     name = makeDecrypt.name;
     email = makeDecrypt.email;
     mobile = makeDecrypt.mobile;
-  }
-
-  const findUser = await User.findOne({
-    _id: { $ne: userId },
-    $or: [{ email }, { mobile }],
-  });
-
-  if (findUser) {
-    return next(
-      new HandleGlobalError(
-        "Email and Mobile should be unique. Either of them is already in use."
-      )
-    );
   }
 
   const randomNumber = generateSixDigitRandomNumber();
@@ -68,4 +52,4 @@ const updateUserProfile = catchAsyncError(async (req, res, next) => {
   });
 });
 
-export default updateUserProfile;
+export default signupSendOTP;

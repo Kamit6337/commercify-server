@@ -4,6 +4,7 @@ import { environment } from "../../utils/environment.js";
 import generateWebToken from "../../utils/auth/generateWebToken.js";
 import HandleGlobalError from "../../utils/HandleGlobalError.js";
 import Product from "../../models/ProductModel.js";
+import changePriceDiscountByExchangeRate from "../../utils/javaScript/changePriceDiscountByExchangeRate.js";
 
 const Stripe = stripe(environment.STRIPE_SECRET_KEY);
 
@@ -30,17 +31,21 @@ const makePaymentSession = catchAsyncError(async (req, res, next) => {
 
     const findQuantity = products.find((obj) => obj.id === String(_id));
 
-    const exchangeRatePrice = Math.round(price * exchangeRate);
+    const { discountedPrice, exchangeRatePrice, roundDiscountPercent } =
+      changePriceDiscountByExchangeRate(
+        price,
+        discountPercentage,
+        exchangeRate
+      );
 
-    const roundDiscountPercent = Math.round(discountPercentage);
-    const discountedPrice = Math.round(
-      (exchangeRatePrice * (100 - roundDiscountPercent)) / 100
+    const discountedPriceWithoutExchangeRate = Math.round(
+      (price * (100 - roundDiscountPercent)) / 100
     );
 
     const obj = {
       id: _id,
       quantity: findQuantity.quantity,
-      price: discountedPrice,
+      price: discountedPriceWithoutExchangeRate,
     };
     productsForToken = [...productsForToken, obj];
 
@@ -58,7 +63,7 @@ const makePaymentSession = catchAsyncError(async (req, res, next) => {
     };
   });
 
-  const deliveryCharge = Math.round(lineItems.length * exchangeRate); // 4 dollars
+  const deliveryCharge = Math.round(lineItems.length * exchangeRate * 0.48); // 4 dollars
   const delieveryObj = {
     price_data: {
       currency: code,

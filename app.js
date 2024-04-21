@@ -1,5 +1,4 @@
 import express from "express";
-
 import globalErrorHandler from "./middlewares/globalErrorHandler.js";
 import HandleGlobalError from "./utils/HandleGlobalError.js";
 import authRouter from "./routes/authRoutes.js";
@@ -15,7 +14,6 @@ import paymentRouter from "./routes/paymentRoutes.js";
 import stripeRouter from "./routes/stripeRoutes.js";
 import protectUserRoutes from "./middlewares/protectUserRoutes.js";
 import globalMiddlewares from "./middlewares/globalMiddlwares.js";
-import "./utils/passport.js";
 
 const app = express();
 
@@ -24,7 +22,6 @@ globalMiddlewares(app);
 
 // NOTE: DIFFERENT ROUTES
 app.use("/auth", authRouter);
-
 app.use("/products", productRouter);
 app.use("/category", categoryRouter);
 app.use("/ratings", protectUserRoutes, ratingRouter);

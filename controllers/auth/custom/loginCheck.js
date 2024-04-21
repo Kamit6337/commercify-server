@@ -43,19 +43,13 @@ const loginCheck = catchAsyncError(async (req, res, next) => {
     );
   }
 
-  // MARK: CHECK UPDATEDAT WHEN PASSWORD UPDATE, SO LOGIN AGAIN IF PASSWORD RESET
-  const updatedAtInMilli = new Date(findUser.updatedAt).getTime();
-
-  if (decoded.iat * 1000 <= updatedAtInMilli) {
-    return next(new HandleGlobalError("Please login again...", 403));
-  }
-
   res.status(200).json({
     message: "User is present",
     _id: findUser._id,
     name: findUser.name,
     photo: findUser.photo,
     email: findUser.email,
+    mobile: findUser.mobile,
     role: findUser.role,
   });
 });

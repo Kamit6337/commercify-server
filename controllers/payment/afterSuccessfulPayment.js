@@ -25,6 +25,8 @@ const afterSuccessfulPayment = catchAsyncError(async (req, res, next) => {
     pinCode: Number(pinCode),
   });
 
+  const productDelieveredBy = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 days
+
   const buyProducts = await Promise.all(
     products.map(async (product) => {
       const { id, quantity, price } = product;
@@ -35,10 +37,15 @@ const afterSuccessfulPayment = catchAsyncError(async (req, res, next) => {
         price: Number(price),
         quantity: Number(quantity),
         address: addNewAddress,
+        delieveredDate: productDelieveredBy,
       });
 
       return newBuyProduct;
     })
+  );
+
+  buyProducts.sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
   res.status(200).json({
