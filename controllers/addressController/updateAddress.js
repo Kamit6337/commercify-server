@@ -1,10 +1,21 @@
 import catchAsyncError from "../../lib/catchAsyncError.js";
 import Address from "../../models/AddressModel.js";
+import HandleGlobalError from "../../utils/HandleGlobalError.js";
 
 const updateAddress = catchAsyncError(async (req, res, next) => {
-  const { id, name, mobile, address, district, state, pinCode } = req.body;
+  const { id, name, dial_code, mobile, address, country, state, district } =
+    req.body;
 
-  if (!id || !name || !mobile || !address || !district || !state || !pinCode) {
+  if (
+    !id ||
+    !name ||
+    !dial_code ||
+    !mobile ||
+    !address ||
+    !country ||
+    !state ||
+    !district
+  ) {
     return next(new HandleGlobalError("All field must provide", 404));
   }
 
@@ -14,11 +25,12 @@ const updateAddress = catchAsyncError(async (req, res, next) => {
     },
     {
       name,
+      dial_code,
       mobile: Number(mobile),
       address,
+      country,
       state,
       district,
-      pinCode: Number(pinCode),
     },
     {
       new: true,

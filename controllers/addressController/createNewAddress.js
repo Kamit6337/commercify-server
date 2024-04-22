@@ -5,20 +5,31 @@ import HandleGlobalError from "../../utils/HandleGlobalError.js";
 const createNewAddress = catchAsyncError(async (req, res, next) => {
   const userId = req.userId;
 
-  const { name, mobile, address, district, state, pinCode } = req.body;
+  const { name, dial_code, mobile, address, country, state, district } =
+    req.body;
 
-  if (!name || !mobile || !address || !district || !state || !pinCode) {
+  if (
+    !id ||
+    !name ||
+    !dial_code ||
+    !mobile ||
+    !address ||
+    !country ||
+    !state ||
+    !district
+  ) {
     return next(new HandleGlobalError("All field must provide", 404));
   }
 
   const addNewAddress = await Address.create({
     user: userId,
     name,
+    dial_code,
     mobile: Number(mobile),
     address,
+    country,
     state,
     district,
-    pinCode: Number(pinCode),
   });
 
   res.status(200).json({

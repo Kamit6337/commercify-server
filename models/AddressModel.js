@@ -24,20 +24,23 @@ const addressSchema = new Schema(
       },
       required: true,
     },
-    pinCode: {
-      type: Number,
-      validate: {
-        validator: function (value) {
-          return /^\d{6}$/.test(value);
-        },
-        message: (props) => `${props.value} is not a valid 6-digit pin-code`,
-      },
+    dial_code: {
+      type: String,
       required: true,
+      trim: true,
+    },
+    country: {
+      type: String,
+      required: true,
+      trim: true,
     },
     address: {
       type: String,
       required: true,
       trim: true,
+    },
+    pinCode: {
+      type: Number,
     },
     district: {
       type: String,

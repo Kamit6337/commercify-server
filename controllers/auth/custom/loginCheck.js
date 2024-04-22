@@ -11,7 +11,7 @@ const loginCheck = catchAsyncError(async (req, res, next) => {
   if (!token) {
     return next(
       new HandleGlobalError(
-        "Your session has expired. Please Login Again.",
+        "You do not have current session. Please Login Again.",
         400
       )
     );

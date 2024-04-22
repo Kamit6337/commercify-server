@@ -1,5 +1,7 @@
 import { environment } from "../utils/environment.js";
 
+const PRODUCTION = "production"
+
 const globalErrorHandler = (err, req, res, next) => {
   err.statusCode = err.statusCode || 400;
   err.status = err.status || "Error";
@@ -82,8 +84,12 @@ const globalErrorHandler = (err, req, res, next) => {
   const errorResponse = {
     status: err.status,
     message: err.message, // Include the message property
-    error: err,
   };
+
+  if(environment.NODE_ENV !== PRODUCTION){
+    errorResponse.err = err
+    errorResponse.errStack = err.stack
+  }
 
   res.status(err.statusCode).json(errorResponse);
 };
