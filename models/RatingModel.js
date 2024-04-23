@@ -5,7 +5,6 @@ const ratingSchema = new Schema(
     user: {
       type: Schema.Types.ObjectId,
       ref: "User",
-      select: false,
     },
     product: {
       type: Schema.Types.ObjectId,

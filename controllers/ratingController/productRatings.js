@@ -14,7 +14,7 @@ const productRatings = catchAsyncError(async (req, res, next) => {
   })
     .populate({
       path: "user",
-      select: "name photo",
+      select: "_id name photo",
     })
     .lean();
 
