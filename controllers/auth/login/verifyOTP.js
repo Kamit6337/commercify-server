@@ -56,11 +56,7 @@ const verifyOTP = catchAsyncError(async (req, res, next) => {
     httpOnly: true,
   };
 
-  console.log("environment.NODE_ENV", environment.NODE_ENV);
-  console.log("token", token);
-
   if (environment.NODE_ENV === PRODUCTION) {
-    console.log("enetered here");
     cookieOptions.secure = true;
     cookieOptions.sameSite = "None";
   }

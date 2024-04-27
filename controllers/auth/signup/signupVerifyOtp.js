@@ -1,4 +1,10 @@
-import catchAsyncError from "../../../lib/catchAsyncError";
+import catchAsyncError from "../../../lib/catchAsyncError.js";
+import User from "../../../models/UserModel.js";
+import HandleGlobalError from "../../../utils/HandleGlobalError.js";
+import generateWebToken from "../../../utils/auth/generateWebToken.js";
+import decrypt from "../../../utils/encryption/decrypt.js";
+
+const PRODUCTION = "production";
 
 const signupVerifyOtp = catchAsyncError(async (req, res, next) => {
   const { mobileNumber, otp, token: otpToken } = req.body;
