@@ -2,7 +2,13 @@ import Buy from "../../models/BuyModel.js";
 import Address from "../../models/AddressModel.js";
 import catchAsyncError from "../../lib/catchAsyncError.js";
 import HandleGlobalError from "../../utils/HandleGlobalError.js";
-import verifyWebToken from "../../utils/auth/verifyWebToken.js";
+import decrypt from "../../utils/encryption/decrypt.js";
+
+const dateInMilli = (day) => {
+  const now = Date.now();
+  const calculateMilli = day * 24 * 60 * 60 * 1000;
+  return now + calculateMilli;
+};
 
 const afterSuccessfulPayment = catchAsyncError(async (req, res, next) => {
   const userId = req.userId;
@@ -12,9 +18,10 @@ const afterSuccessfulPayment = catchAsyncError(async (req, res, next) => {
     return next(new HandleGlobalError("Token is not provided", 404));
   }
 
-  const { products, address: addressFromToken } = verifyWebToken(token);
+  const { products, address: addressFromToken } = decrypt(token);
 
-  const { name, mobile, address, district, state, pinCode } = addressFromToken;
+  const { name, mobile, address, district, state, country, dial_code } =
+    addressFromToken;
 
   const addNewAddress = await Address.create({
     name,
@@ -22,14 +29,13 @@ const afterSuccessfulPayment = catchAsyncError(async (req, res, next) => {
     address,
     state,
     district,
-    pinCode: Number(pinCode),
+    country,
+    dial_code,
   });
-
-  const productDelieveredBy = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 days
 
   const buyProducts = await Promise.all(
     products.map(async (product) => {
-      const { id, quantity, price } = product;
+      const { id, quantity, price, exchangeRate, deliveredBy } = product;
 
       const newBuyProduct = await Buy.create({
         user: userId,
@@ -37,7 +43,8 @@ const afterSuccessfulPayment = catchAsyncError(async (req, res, next) => {
         price: Number(price),
         quantity: Number(quantity),
         address: addNewAddress,
-        delieveredDate: productDelieveredBy,
+        exchangeRate: Number(exchangeRate),
+        delieveredDate: dateInMilli(Number(deliveredBy)),
       });
 
       return newBuyProduct;

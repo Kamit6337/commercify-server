@@ -17,6 +17,10 @@ const buySchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    exchangeRate: {
+      type: Number,
+      required: true,
+    },
     quantity: {
       type: Number,
       default: 1,

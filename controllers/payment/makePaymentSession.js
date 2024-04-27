@@ -1,10 +1,10 @@
 import catchAsyncError from "../../lib/catchAsyncError.js";
 import stripe from "stripe";
 import { environment } from "../../utils/environment.js";
-import generateWebToken from "../../utils/auth/generateWebToken.js";
 import HandleGlobalError from "../../utils/HandleGlobalError.js";
 import Product from "../../models/ProductModel.js";
 import changePriceDiscountByExchangeRate from "../../utils/javaScript/changePriceDiscountByExchangeRate.js";
+import encrypt from "../../utils/encryption/encrypt.js";
 
 const Stripe = stripe(environment.STRIPE_SECRET_KEY);
 
@@ -26,27 +26,35 @@ const makePaymentSession = catchAsyncError(async (req, res, next) => {
   let productsForToken = [];
 
   let lineItems = findProducts.map((product) => {
-    const { _id, title, description, price, discountPercentage, thumbnail } =
-      product;
+    const {
+      _id,
+      title,
+      description,
+      price,
+      discountPercentage,
+      thumbnail,
+      deliveredBy,
+    } = product;
 
     const findQuantity = products.find((obj) => obj.id === String(_id));
 
-    const { discountedPrice, exchangeRatePrice, roundDiscountPercent } =
-      changePriceDiscountByExchangeRate(
-        price,
-        discountPercentage,
-        exchangeRate
-      );
-
-    const discountedPriceWithoutExchangeRate = Math.round(
-      (price * (100 - roundDiscountPercent)) / 100
+    const { discountedPrice } = changePriceDiscountByExchangeRate(
+      price,
+      discountPercentage,
+      exchangeRate
     );
+
+    const discountedPriceWithoutExchangeRate =
+      (price * (100 - Math.trunc(discountPercentage))) / 100;
 
     const obj = {
       id: _id,
       quantity: findQuantity.quantity,
       price: discountedPriceWithoutExchangeRate,
+      exchangeRate,
+      deliveredBy,
     };
+
     productsForToken = [...productsForToken, obj];
 
     return {
@@ -90,15 +98,12 @@ const makePaymentSession = catchAsyncError(async (req, res, next) => {
     },
   });
 
-  const token = generateWebToken(
-    { products: productsForToken, address },
-    { expires: 10000000000 }
-  );
+  const createToken = encrypt({ products: productsForToken, address });
 
   // Create a PaymentIntent with the order amount and currency
   const session = await Stripe.checkout.sessions.create({
     payment_method_types: ["card"],
-    success_url: `${environment.CLIENT_URL}/payment/success?token=${token}`,
+    success_url: `${environment.CLIENT_URL}/payment/success?token=${createToken}`,
     cancel_url: environment.CLIENT_URL + "/payment/cancel",
     customer: customer.id,
     client_reference_id: req.userId,
