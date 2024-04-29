@@ -30,11 +30,11 @@ const buySchema = new mongoose.Schema(
       ref: "Address",
       required: true,
     },
-    isDelievered: {
+    isDelivered: {
       type: Boolean,
       default: false,
     },
-    delieveredDate: {
+    deliveredDate: {
       type: Date,
       default: null,
     },

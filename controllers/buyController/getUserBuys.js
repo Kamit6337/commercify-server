@@ -11,23 +11,22 @@ const getUserBuys = catchAsyncError(async (req, res, next) => {
     .populate("address")
     .lean();
 
-  const updateDeleievered = await Promise.all(
+  const updateDelivered = await Promise.all(
     findAllBuys.map(async (buy) => {
-      const { _id, delieveredDate, isCancelled, isReturned, isDelievered } =
-        buy;
+      const { _id, deliveredDate, isCancelled, isReturned, isDelivered } = buy;
 
       if (
         !isCancelled &&
         !isReturned &&
-        !isDelievered &&
-        new Date(delieveredDate).getTime() <= Date.now()
+        !isDelivered &&
+        new Date(deliveredDate).getTime() <= Date.now()
       ) {
         const updateBuy = await Buy.findOneAndUpdate(
           {
             _id: String(_id),
           },
           {
-            isDelievered: true,
+            isDelivered: true,
           },
           {
             new: true,
@@ -40,13 +39,13 @@ const getUserBuys = catchAsyncError(async (req, res, next) => {
     })
   );
 
-  updateDeleievered.sort(
+  updateDelivered.sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
   res.status(200).json({
     message: "All buy products of user",
-    data: updateDeleievered,
+    data: updateDelivered,
   });
 });
 

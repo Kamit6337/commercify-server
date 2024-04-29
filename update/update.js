@@ -21,24 +21,14 @@ mongoose.connection.on("disconnected", () => {
 mongoose.connection.on("connected", async () => {
   console.log("Connected to MongoDB");
 
-  // Retrieve all products
-  const allProducts = await Product.find().lean();
+  const deletedBuys = await Buy.updateMany(
+    {},
+    {
+      $rename: { isDelievered: "isDelivered", delieveredDate: "deliveredDate" },
+    }
+  );
 
-  // Generate random days for each product
-  const bulkUpdateOperations = allProducts.map((product) => {
-    const randomDay = Math.trunc(Math.random() * 7) + 1;
-    return {
-      updateOne: {
-        filter: { _id: product._id },
-        update: { $set: { deliveredBy: randomDay } },
-      },
-    };
-  });
-
-  // Perform bulk update
-  const bulkUpdate = await Product.bulkWrite(bulkUpdateOperations);
-
-  console.log("bulkUpdate", bulkUpdate);
+  console.log("deletedBuys", deletedBuys);
 
   mongoose.connection.close();
 });

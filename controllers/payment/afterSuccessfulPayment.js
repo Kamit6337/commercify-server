@@ -37,15 +37,20 @@ const afterSuccessfulPayment = catchAsyncError(async (req, res, next) => {
     products.map(async (product) => {
       const { id, quantity, price, exchangeRate, deliveredBy } = product;
 
-      const newBuyProduct = await Buy.create({
-        user: userId,
-        product: id,
-        price: Number(price),
-        quantity: Number(quantity),
-        address: addNewAddress,
-        exchangeRate: Number(exchangeRate),
-        delieveredDate: dateInMilli(Number(deliveredBy)),
-      });
+      // Use findOneAndUpdate to create the Buy and populate the product and address fields in one go
+      const newBuyProduct = await Buy.findOneAndUpdate(
+        {
+          user: userId,
+          product: id,
+          price: Number(price),
+          quantity: Number(quantity),
+          address: addNewAddress._id,
+          exchangeRate: Number(exchangeRate),
+          deliveredDate: dateInMilli(Number(deliveredBy)),
+        },
+        {},
+        { new: true, upsert: true, populate: ["product", "address"] } // Populate both product and address fields
+      );
 
       return newBuyProduct;
     })

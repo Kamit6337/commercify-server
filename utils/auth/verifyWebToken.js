@@ -12,6 +12,7 @@ import { environment } from "../environment.js";
 const verifyWebToken = (token, secret = environment.JWT_SECRET_KEY) => {
   try {
     const decoded = jwt.verify(token, secret);
+    console.log("decoded", decoded);
     return decoded;
   } catch (error) {
     throw error;
