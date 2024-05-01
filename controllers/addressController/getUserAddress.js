@@ -4,13 +4,13 @@ import Address from "../../models/AddressModel.js";
 const getUserAddress = catchAsyncError(async (req, res, next) => {
   const userId = req.userId;
 
-  const userAddrress = await Address.find({
+  const userAddress = await Address.find({
     user: userId,
-  });
+  }).lean();
 
   res.status(200).json({
     message: "user all addresses",
-    data: userAddrress,
+    data: userAddress,
   });
 });
 

@@ -21,14 +21,5 @@ mongoose.connection.on("disconnected", () => {
 mongoose.connection.on("connected", async () => {
   console.log("Connected to MongoDB");
 
-  const deletedBuys = await Buy.updateMany(
-    {},
-    {
-      $rename: { isDelievered: "isDelivered", delieveredDate: "deliveredDate" },
-    }
-  );
-
-  console.log("deletedBuys", deletedBuys);
-
   mongoose.connection.close();
 });
