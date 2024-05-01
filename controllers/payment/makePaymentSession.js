@@ -102,7 +102,6 @@ const makePaymentSession = catchAsyncError(async (req, res, next) => {
     country,
     dial_code,
     state,
-    user: userId,
   });
 
   const buyProducts = await Promise.all(
