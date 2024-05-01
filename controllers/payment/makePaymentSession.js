@@ -23,18 +23,9 @@ const makePaymentSession = catchAsyncError(async (req, res, next) => {
     _id: { $in: productIds },
   }).lean();
 
-  let productsForToken = [];
-
   let lineItems = findProducts.map((product) => {
-    const {
-      _id,
-      title,
-      description,
-      price,
-      discountPercentage,
-      thumbnail,
-      deliveredBy,
-    } = product;
+    const { _id, title, description, price, discountPercentage, thumbnail } =
+      product;
 
     const findQuantity = products.find((obj) => obj.id === String(_id));
 
@@ -43,19 +34,6 @@ const makePaymentSession = catchAsyncError(async (req, res, next) => {
       discountPercentage,
       exchangeRate
     );
-
-    const discountedPriceWithoutExchangeRate =
-      (price * (100 - Math.trunc(discountPercentage))) / 100;
-
-    const obj = {
-      id: _id,
-      quantity: findQuantity.quantity,
-      price: discountedPriceWithoutExchangeRate,
-      exchangeRate,
-      deliveredBy,
-    };
-
-    productsForToken = [...productsForToken, obj];
 
     return {
       price_data: {
@@ -98,12 +76,10 @@ const makePaymentSession = catchAsyncError(async (req, res, next) => {
     },
   });
 
-  const createToken = encrypt({ products: productsForToken, address });
-
   // Create a PaymentIntent with the order amount and currency
   const session = await Stripe.checkout.sessions.create({
     payment_method_types: ["card"],
-    success_url: `${environment.CLIENT_URL}/payment/success?token=${createToken}`,
+    success_url: `${environment.CLIENT_URL}/payment/success`,
     cancel_url: environment.CLIENT_URL + "/payment/cancel",
     customer: customer.id,
     client_reference_id: req.userId,

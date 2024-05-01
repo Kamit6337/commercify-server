@@ -39,9 +39,6 @@ const addressSchema = new Schema(
       required: true,
       trim: true,
     },
-    pinCode: {
-      type: Number,
-    },
     district: {
       type: String,
       required: true,

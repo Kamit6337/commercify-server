@@ -2,7 +2,8 @@ import Buy from "../../models/BuyModel.js";
 import Address from "../../models/AddressModel.js";
 import catchAsyncError from "../../lib/catchAsyncError.js";
 import HandleGlobalError from "../../utils/HandleGlobalError.js";
-import decrypt from "../../utils/encryption/decrypt.js";
+import Product from "../../models/ProductModel.js";
+import mongoose from "mongoose";
 
 const dateInMilli = (day) => {
   const now = Date.now();
@@ -12,38 +13,56 @@ const dateInMilli = (day) => {
 
 const afterSuccessfulPayment = catchAsyncError(async (req, res, next) => {
   const userId = req.userId;
-  const { token } = req.query;
 
-  if (!token) {
-    return next(new HandleGlobalError("Token is not provided", 404));
+  const { products, address: addressId, exchangeRate } = req.query;
+
+  if (!products || !addressId || !exchangeRate) {
+    return next(new HandleGlobalError("All fields are not provided", 404));
   }
 
-  const { products, address: addressFromToken } = decrypt(token);
+  const findAddress = await Address.findOne({ _id: addressId }).lean();
+
+  if (!findAddress) {
+    // Handle case when address with the given ID is not found
+    return next(new HandleGlobalError("Address not found", 404));
+  }
 
   const { name, mobile, address, district, state, country, dial_code } =
-    addressFromToken;
+    findAddress;
 
   const addNewAddress = await Address.create({
     name,
     mobile: Number(mobile),
     address,
-    state,
     district,
     country,
     dial_code,
+    state,
+    user: userId,
   });
 
+  const productIds = products.map((obj) => obj.id);
+
+  const findProducts = await Product.find({
+    _id: { $in: productIds },
+  }).lean();
+
   const buyProducts = await Promise.all(
-    products.map(async (product) => {
-      const { id, quantity, price, exchangeRate, deliveredBy } = product;
+    findProducts.map(async (product) => {
+      const { _id, price, deliveredBy, discountPercentage } = product;
+
+      const findQuantity = products.find((obj) => obj.id === String(_id));
+
+      const discountedPriceWithoutExchangeRate =
+        (price * (100 - Math.trunc(discountPercentage))) / 100;
 
       // Use findOneAndUpdate to create the Buy and populate the product and address fields in one go
       const newBuyProduct = await Buy.findOneAndUpdate(
         {
           user: userId,
-          product: id,
-          price: Number(price),
-          quantity: Number(quantity),
+          product: _id,
+          price: Number(discountedPriceWithoutExchangeRate),
+          quantity: Number(findQuantity.quantity),
           address: addNewAddress._id,
           exchangeRate: Number(exchangeRate),
           deliveredDate: dateInMilli(Number(deliveredBy)),
@@ -62,8 +81,7 @@ const afterSuccessfulPayment = catchAsyncError(async (req, res, next) => {
 
   res.status(200).json({
     message: "Payment Successful",
-    address: addressFromToken,
-    products: buyProducts,
+    data: buyProducts,
   });
 });
 
