@@ -16,6 +16,8 @@ const paymentMiddleware = catchAsyncError(async (req, res, next) => {
 
   const { buysId } = decrypt(ords);
 
+  console.log("buysId", buysId);
+
   req.buysId = buysId;
 
   next();
