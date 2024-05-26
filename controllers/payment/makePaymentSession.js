@@ -145,10 +145,10 @@ const makePaymentSession = catchAsyncError(async (req, res, next) => {
     httpOnly: true,
   };
 
-  // if (environment.NODE_ENV === PRODUCTION) {
-  //   cookieOptions.secure = true;
-  //   cookieOptions.sameSite = "None";
-  // }
+  if (environment.NODE_ENV === PRODUCTION) {
+    cookieOptions.secure = false;
+    cookieOptions.sameSite = "None";
+  }
 
   res.cookie("ords", encryptBuysId, cookieOptions);
 
