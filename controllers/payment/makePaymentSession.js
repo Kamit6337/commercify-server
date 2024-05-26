@@ -146,7 +146,6 @@ const makePaymentSession = catchAsyncError(async (req, res, next) => {
   };
 
   if (environment.NODE_ENV === PRODUCTION) {
-    cookieOptions.secure = true;
     cookieOptions.sameSite = "None";
   }
 
