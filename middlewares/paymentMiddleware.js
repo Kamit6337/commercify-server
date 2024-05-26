@@ -6,6 +6,8 @@ import decrypt from "../utils/encryption/decrypt.js";
 const paymentMiddleware = catchAsyncError(async (req, res, next) => {
   const { ords } = Req(req);
 
+  console.log("ords", ords);
+
   if (!ords) {
     return next(
       new HandleGlobalError("Something went wrong with payment. Try later", 404)
