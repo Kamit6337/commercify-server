@@ -13,6 +13,11 @@ const buySchema = new mongoose.Schema(
       required: true,
       select: false,
     },
+    sessionId: {
+      type: String,
+      required: true,
+      select: false,
+    },
     price: {
       type: Number,
       required: true,

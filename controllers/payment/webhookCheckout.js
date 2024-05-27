@@ -1,20 +1,14 @@
 import stripe from "stripe";
 import { environment } from "../../utils/environment.js";
-import Req from "../../utils/Req.js";
-import decrypt from "../../utils/encryption/decrypt.js";
+import catchAsyncError from "../../lib/catchAsyncError.js";
+import Buy from "../../models/BuyModel.js";
+import Address from "../../models/AddressModel.js";
 
 const Stripe = stripe(environment.STRIPE_SECRET_KEY);
 const webhookSecretKey = environment.STRIPE_WEBHOOK_SECRET_KEY;
 
-const webhookCheckout = (request, response) => {
+const webhookCheckout = catchAsyncError(async (request, response) => {
   const sig = request.headers["stripe-signature"];
-
-  const { wb } = Req(request);
-
-  if (!wb) {
-    response.status(400).send(`Webhook Error: ${err.message}`);
-    return;
-  }
 
   let event;
   try {
@@ -26,18 +20,47 @@ const webhookCheckout = (request, response) => {
 
   // Handle the event
   if (event.type === "checkout.session.completed") {
-    const { address, products } = decrypt(wb);
+    const session = event.data.object;
+    const { client_reference_id, metadata } = session;
 
+    // Parse willBuyProducts from metadata
+    const {
+      products,
+      address: findAddress,
+      sessionId,
+    } = JSON.parse(metadata.willBuyProducts);
+
+    const { name, mobile, address, district, state, country, dial_code } =
+      findAddress;
+
+    const addNewAddress = await Address.create({
+      name,
+      mobile: Number(mobile),
+      address,
+      district,
+      country,
+      dial_code,
+      state,
+    });
+
+    await Promise.all(
+      willBuyProducts.products.map(async (product) => {
+        await Buy.create({
+          ...product,
+          sessionId,
+          user: client_reference_id,
+          address: addNewAddress._id,
+        });
+      })
+    );
+
+    console.log("session", session);
     console.log("address", address);
     console.log("products", products);
-
-    const checkoutSessionCompleted = event.data.object;
-
-    console.log("checkoutSessionCompleted", checkoutSessionCompleted);
   }
 
   // Return a 200 response to acknowledge receipt of the event
   response.send();
-};
+});
 
 export default webhookCheckout;

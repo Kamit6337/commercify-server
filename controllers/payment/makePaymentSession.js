@@ -8,6 +8,7 @@ import encrypt from "../../utils/encryption/encrypt.js";
 import Address from "../../models/AddressModel.js";
 import dateInMilli from "../../utils/javaScript/dateInMilli.js";
 import Buy from "../../models/BuyModel.js";
+import generateUniqueId from "../../utils/javaScript/generateUniqueId.js";
 const PRODUCTION = "production";
 
 const Stripe = stripe(environment.STRIPE_SECRET_KEY);
@@ -15,7 +16,7 @@ const Stripe = stripe(environment.STRIPE_SECRET_KEY);
 const makePaymentSession = catchAsyncError(async (req, res, next) => {
   const user = req.user;
   const userId = req.userId;
-
+  const CHECKOUT_SESSION_ID = generateUniqueId();
   const { products, address: addressId, code, exchangeRate } = req.body;
 
   if (!products || !addressId || !code || !exchangeRate) {
@@ -33,6 +34,7 @@ const makePaymentSession = catchAsyncError(async (req, res, next) => {
   const willBuyProducts = {
     products: [],
     address: { ...findAddress },
+    sessionId: CHECKOUT_SESSION_ID,
   };
 
   let lineItems = findProducts.map((product) => {
@@ -116,12 +118,15 @@ const makePaymentSession = catchAsyncError(async (req, res, next) => {
   // Create a PaymentIntent with the order amount and currency
   const session = await Stripe.checkout.sessions.create({
     payment_method_types: ["card"],
-    success_url: `${environment.CLIENT_URL}/payment/success`,
+    success_url: `${environment.CLIENT_URL}/payment/success?sessionId=${CHECKOUT_SESSION_ID}`,
     cancel_url: environment.CLIENT_URL + "/payment/cancel",
     customer: customer.id,
     client_reference_id: req.userId,
     mode: "payment",
     line_items: lineItems,
+    metadata: {
+      willBuyProducts: JSON.stringify(willBuyProducts),
+    },
   });
 
   // const addNewAddress = await Address.create({
@@ -168,19 +173,19 @@ const makePaymentSession = catchAsyncError(async (req, res, next) => {
   //   buysId,
   // };
 
-  const encryptBuysId = encrypt(willBuyProducts);
+  // const encryptBuysId = encrypt(willBuyProducts);
 
-  const cookieOptions = {
-    maxAge: 1 * 24 * 60 * 60 * 1000, //1 day
-    httpOnly: true,
-  };
+  // const cookieOptions = {
+  //   maxAge: 1 * 24 * 60 * 60 * 1000, //1 day
+  //   httpOnly: true,
+  // };
 
-  if (environment.NODE_ENV === PRODUCTION) {
-    cookieOptions.secure = true;
-    cookieOptions.sameSite = "None";
-  }
+  // if (environment.NODE_ENV === PRODUCTION) {
+  //   cookieOptions.secure = true;
+  //   cookieOptions.sameSite = "None";
+  // }
 
-  res.cookie("wb", encryptBuysId, cookieOptions);
+  // res.cookie("wb", encryptBuysId, cookieOptions);
 
   res.status(200).json({
     message: "Payment session Created",
