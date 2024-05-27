@@ -14,8 +14,16 @@ import paymentRouter from "./routes/paymentRoutes.js";
 import stripeRouter from "./routes/stripeRoutes.js";
 import protectUserRoutes from "./middlewares/protectUserRoutes.js";
 import globalMiddlewares from "./middlewares/globalMiddlwares.js";
+import webhookCheckout from "./controllers/payment/webhookCheckout.js";
 
 const app = express();
+
+// MARK: WEBHOOK-CHECKOUT
+app.post(
+  "/webhook-checkout",
+  express.raw({ type: "application/json" }),
+  webhookCheckout
+);
 
 // MARK: GLOBAL MIDDLEWARES
 globalMiddlewares(app);

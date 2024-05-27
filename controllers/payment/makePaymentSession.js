@@ -30,9 +30,21 @@ const makePaymentSession = catchAsyncError(async (req, res, next) => {
     _id: { $in: productIds },
   }).lean();
 
+  const willBuyProducts = {
+    products: [],
+    address: { ...findAddress },
+  };
+
   let lineItems = findProducts.map((product) => {
-    const { _id, title, description, price, discountPercentage, thumbnail } =
-      product;
+    const {
+      _id,
+      title,
+      description,
+      price,
+      discountPercentage,
+      thumbnail,
+      deliveredBy,
+    } = product;
 
     const findQuantity = products.find((obj) => obj.id === String(_id));
     const { discountedPrice } = changePriceDiscountByExchangeRate(
@@ -40,6 +52,23 @@ const makePaymentSession = catchAsyncError(async (req, res, next) => {
       discountPercentage,
       exchangeRate
     );
+
+    const discountedPriceWithoutExchangeRate =
+      (price * (100 - Math.trunc(discountPercentage))) / 100;
+
+    // Use findOneAndUpdate to create the Buy and populate the product and address fields in one go
+
+    const obj = {
+      user: userId,
+      product: _id,
+      price: Number(discountedPriceWithoutExchangeRate),
+      quantity: Number(findQuantity.quantity),
+      exchangeRate: Number(exchangeRate),
+      deliveredDate: dateInMilli(Number(deliveredBy)),
+    };
+
+    willBuyProducts.products.push(obj);
+
     return {
       price_data: {
         currency: code,
@@ -75,6 +104,7 @@ const makePaymentSession = catchAsyncError(async (req, res, next) => {
   const customer = await Stripe.customers.create({
     name: user.name,
     email: user.email,
+    phone: user.mobile,
     address: {
       line1: address,
       city: district,
@@ -88,57 +118,58 @@ const makePaymentSession = catchAsyncError(async (req, res, next) => {
     payment_method_types: ["card"],
     success_url: `${environment.CLIENT_URL}/payment/success`,
     cancel_url: environment.CLIENT_URL + "/payment/cancel",
-    customer: customer.id,
+    // customer: customer.id,
+    customer_email: user.email,
     client_reference_id: req.userId,
     mode: "payment",
     line_items: lineItems,
   });
 
-  const addNewAddress = await Address.create({
-    name,
-    mobile: Number(mobile),
-    address,
-    district,
-    country,
-    dial_code,
-    state,
-  });
+  // const addNewAddress = await Address.create({
+  //   name,
+  //   mobile: Number(mobile),
+  //   address,
+  //   district,
+  //   country,
+  //   dial_code,
+  //   state,
+  // });
 
-  const buyProducts = await Promise.all(
-    findProducts.map(async (product) => {
-      const { _id, price, deliveredBy, discountPercentage } = product;
+  // const buyProducts = await Promise.all(
+  //   findProducts.map(async (product) => {
+  //     const { _id, price, deliveredBy, discountPercentage } = product;
 
-      const findQuantity = products.find((obj) => obj.id === String(_id));
+  //     const findQuantity = products.find((obj) => obj.id === String(_id));
 
-      const discountedPriceWithoutExchangeRate =
-        (price * (100 - Math.trunc(discountPercentage))) / 100;
+  //     const discountedPriceWithoutExchangeRate =
+  //       (price * (100 - Math.trunc(discountPercentage))) / 100;
 
-      // Use findOneAndUpdate to create the Buy and populate the product and address fields in one go
-      const newBuyProduct = await Buy.findOneAndUpdate(
-        {
-          user: userId,
-          product: _id,
-          price: Number(discountedPriceWithoutExchangeRate),
-          quantity: Number(findQuantity.quantity),
-          address: addNewAddress._id,
-          exchangeRate: Number(exchangeRate),
-          deliveredDate: dateInMilli(Number(deliveredBy)),
-        },
-        {},
-        { new: true, upsert: true, populate: ["product", "address"] } // Populate both product and address fields
-      );
+  //     // Use findOneAndUpdate to create the Buy and populate the product and address fields in one go
+  //     const newBuyProduct = await Buy.findOneAndUpdate(
+  //       {
+  //         user: userId,
+  //         product: _id,
+  //         price: Number(discountedPriceWithoutExchangeRate),
+  //         quantity: Number(findQuantity.quantity),
+  //         address: addNewAddress._id,
+  //         exchangeRate: Number(exchangeRate),
+  //         deliveredDate: dateInMilli(Number(deliveredBy)),
+  //       },
+  //       {},
+  //       { new: true, upsert: true, populate: ["product", "address"] } // Populate both product and address fields
+  //     );
 
-      return newBuyProduct;
-    })
-  );
+  //     return newBuyProduct;
+  //   })
+  // );
 
-  const buysId = buyProducts.map((obj) => String(obj._id));
+  // const buysId = buyProducts.map((obj) => String(obj._id));
 
-  const obj = {
-    buysId,
-  };
+  // const obj = {
+  //   buysId,
+  // };
 
-  const encryptBuysId = encrypt(obj);
+  const encryptBuysId = encrypt(willBuyProducts);
 
   const cookieOptions = {
     maxAge: 1 * 24 * 60 * 60 * 1000, //1 day
@@ -150,7 +181,7 @@ const makePaymentSession = catchAsyncError(async (req, res, next) => {
     cookieOptions.sameSite = "None";
   }
 
-  res.cookie("ords", encryptBuysId, cookieOptions);
+  res.cookie("wb", encryptBuysId, cookieOptions);
 
   res.status(200).json({
     message: "Payment session Created",
