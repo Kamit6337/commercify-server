@@ -3,7 +3,7 @@ import Buy from "../../models/BuyModel.js";
 import HandleGlobalError from "../../utils/HandleGlobalError.js";
 
 const afterSuccessfulPayment = catchAsyncError(async (req, res, next) => {
-  const sessionId = req.sessionId;
+  const { sessionId } = req.query;
 
   if (!sessionId) {
     return next(new HandleGlobalError("Please provide ID", 404));

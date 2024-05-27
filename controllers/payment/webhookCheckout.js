@@ -44,7 +44,7 @@ const webhookCheckout = catchAsyncError(async (request, response) => {
     });
 
     await Promise.all(
-      willBuyProducts.products.map(async (product) => {
+      products.map(async (product) => {
         await Buy.create({
           ...product,
           sessionId,
