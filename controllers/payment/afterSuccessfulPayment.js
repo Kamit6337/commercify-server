@@ -12,6 +12,8 @@ const afterSuccessfulPayment = catchAsyncError(async (req, res, next) => {
   const products = await Buy.find({
     sessionId,
   })
+    .populate("product")
+    .populate("address")
     .lean()
     .sort("+createdAt");
 
