@@ -9,6 +9,5 @@ const router = express.Router();
 router.route("/").post(makePaymentSession);
 
 router.get("/success", afterSuccessfulPayment);
-router.get("/failed", afterFailedPayment);
 
 export default router;

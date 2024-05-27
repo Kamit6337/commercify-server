@@ -53,10 +53,6 @@ const webhookCheckout = catchAsyncError(async (request, response) => {
         });
       })
     );
-
-    console.log("session", session);
-    console.log("address", address);
-    console.log("products", products);
   }
 
   // Return a 200 response to acknowledge receipt of the event
