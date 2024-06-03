@@ -54,12 +54,9 @@ const verifyOTP = catchAsyncError(async (req, res, next) => {
   const cookieOptions = {
     maxAge: environment.JWT_EXPIRES_IN,
     httpOnly: true,
+    secure: environment.NODE_ENV === PRODUCTION,
+    sameSite: environment.NODE_ENV === PRODUCTION ? "None" : "Lax",
   };
-
-  if (environment.NODE_ENV === PRODUCTION) {
-    cookieOptions.secure = true;
-    cookieOptions.sameSite = "None";
-  }
 
   res.cookie("token", token, cookieOptions);
 
