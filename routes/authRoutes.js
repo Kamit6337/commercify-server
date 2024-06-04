@@ -8,7 +8,10 @@ import logout from "../controllers/auth/custom/logout.js";
 const router = express.Router();
 
 // NOTE: SEND OTP AND VERIFY OTP
-router.post("/login/send-otp", sendOTP).post("/login/verify-otp", verifyOTP);
+//prettier-ignore
+router
+  .post("/login/send-otp", sendOTP)
+  .post("/login/verify-otp", verifyOTP);
 
 // NOTE: SIGNUP THROUGH MOBILE AND VERIFY OTP
 router
