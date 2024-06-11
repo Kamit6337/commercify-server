@@ -14,9 +14,9 @@ const makePaymentSession = catchAsyncError(async (req, res, next) => {
   const user = req.user;
   const userId = req.userId;
   const CHECKOUT_SESSION_ID = generateUniqueId();
-  const { products, address: addressId, code, exchangeRate } = req.body;
+  const { products, address: addressId, code, exchangeRate, symbol } = req.body;
 
-  if (!products || !addressId || !code || !exchangeRate) {
+  if (!products || !addressId || !code || !exchangeRate || !symbol) {
     return next(new HandleGlobalError("Not provide all fields", 404));
   }
 
@@ -63,6 +63,11 @@ const makePaymentSession = catchAsyncError(async (req, res, next) => {
       quantity: Number(findQuantity.quantity),
       exchangeRate: Number(exchangeRate),
       deliveredDate: dateInMilli(Number(deliveredBy)),
+      name: title,
+      image: thumbnail,
+      description: description,
+      showPrice: discountedPrice,
+      symbol: symbol,
     };
 
     willBuyProducts.products.push(obj);

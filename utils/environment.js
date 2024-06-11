@@ -17,4 +17,6 @@ export const environment = {
   ECNRYPTION_METHOD: process.env.ECNRYPTION_METHOD,
   STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
   STRIPE_WEBHOOK_SECRET_KEY: process.env.STRIPE_WEBHOOK_SECRET_KEY,
+  MY_GMAIL_ID: process.env.MY_GMAIL_ID,
+  MY_GMAIL_PASSWORD: process.env.MY_GMAIL_PASSWORD,
 };

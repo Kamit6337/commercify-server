@@ -3,9 +3,22 @@ import { environment } from "../../utils/environment.js";
 import catchAsyncError from "../../lib/catchAsyncError.js";
 import Buy from "../../models/BuyModel.js";
 import Address from "../../models/AddressModel.js";
+import nodemailer from "nodemailer";
+import ejs from "ejs";
+import path from "path";
+import User from "../../models/UserModel.js";
 
 const Stripe = stripe(environment.STRIPE_SECRET_KEY);
 const webhookSecretKey = environment.STRIPE_WEBHOOK_SECRET_KEY;
+
+// Set up nodemailer transporter
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: environment.MY_GMAIL_ID,
+    pass: environment.MY_GMAIL_PASSWORD,
+  },
+});
 
 const webhookCheckout = catchAsyncError(async (request, response) => {
   const sig = request.headers["stripe-signature"];
@@ -19,41 +32,79 @@ const webhookCheckout = catchAsyncError(async (request, response) => {
   }
 
   // Handle the event
-  if (event.type === "checkout.session.completed") {
-    const session = event.data.object;
-    const { client_reference_id, metadata } = session;
-
-    // Parse willBuyProducts from metadata
-    const {
-      products,
-      address: findAddress,
-      sessionId,
-    } = JSON.parse(metadata.willBuyProducts);
-
-    const { name, mobile, address, district, state, country, dial_code } =
-      findAddress;
-
-    const addNewAddress = await Address.create({
-      name,
-      mobile: Number(mobile),
-      address,
-      district,
-      country,
-      dial_code,
-      state,
-    });
-
-    await Promise.all(
-      products.map(async (product) => {
-        await Buy.create({
-          ...product,
-          sessionId,
-          user: client_reference_id,
-          address: addNewAddress._id,
-        });
-      })
-    );
+  if (event.type !== "checkout.session.completed") {
+    response.send();
+    return;
   }
+
+  const session = event.data.object;
+  const { client_reference_id, metadata } = session;
+
+  // Parse willBuyProducts from metadata
+  const {
+    products,
+    address: findAddress,
+    sessionId,
+  } = JSON.parse(metadata.willBuyProducts);
+
+  const { name, mobile, address, district, state, country, dial_code } =
+    findAddress;
+
+  const addNewAddress = await Address.create({
+    name,
+    mobile: Number(mobile),
+    address,
+    district,
+    country,
+    dial_code,
+    state,
+  });
+
+  await Promise.all(
+    products.map(async (product) => {
+      const newProduct = { ...product };
+
+      delete newProduct.name;
+      delete newProduct.image;
+      delete newProduct.description;
+      delete newProduct.showPrice;
+      delete newProduct.symbol;
+
+      await Buy.create({
+        ...newProduct,
+        sessionId,
+        user: client_reference_id,
+        address: addNewAddress._id,
+      });
+      return null;
+    })
+  );
+
+  const findUser = await User.findOne({ _id: client_reference_id }).lean();
+
+  // Render HTML template with dynamic OTP
+  const htmlTemplate = await ejs.renderFile(
+    path.join("views", "userBuyProducts.ejs"),
+    {
+      products,
+    }
+  );
+
+  // Set up email options
+  const mailOptions = {
+    from: `Commercify ${environment.MY_GMAIL_ID}`,
+    to: findUser.email,
+    subject: "Commercify: Your order summary",
+    html: htmlTemplate,
+  };
+
+  // Send email
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      return res.status(500).json({ error: "Error sending email" });
+    }
+    response.json({ message: "Email sent successfully", info });
+  });
 
   // Return a 200 response to acknowledge receipt of the event
   response.send();
