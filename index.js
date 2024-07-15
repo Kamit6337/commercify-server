@@ -1,6 +1,6 @@
-import { environment } from "./utils/environment.js";
 import dotenv from "dotenv";
 dotenv.config();
+import { environment } from "./utils/environment.js";
 import mongoose from "mongoose";
 import app from "./app.js";
 
