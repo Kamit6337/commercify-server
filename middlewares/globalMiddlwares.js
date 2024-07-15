@@ -4,10 +4,10 @@ import cors from "cors";
 import { corsOptions } from "../utils/corsOptions.js";
 import session from "express-session";
 import expressSessionOptions from "../utils/expressSessionOptions.js";
-import databaseConnection from "./checkDatabaseConnection.js";
+// import databaseConnection from "./checkDatabaseConnection.js";
 
 const globalMiddlewares = (app) => {
-  app.use(databaseConnection);
+  // app.use(databaseConnection);
 
   app.use(cors(corsOptions));
 

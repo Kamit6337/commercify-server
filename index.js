@@ -1,59 +1,68 @@
-import { environment } from "./utils/environment.js";
 import dotenv from "dotenv";
 dotenv.config();
-import mongoose from "mongoose";
-import app from "./app.js";
+import express from "express";
+import globalErrorHandler from "./middlewares/globalErrorHandler.js";
+import HandleGlobalError from "./utils/HandleGlobalError.js";
+import authRouter from "./routes/authRoutes.js";
+import productRouter from "./routes/productRoutes.js";
+import categoryRouter from "./routes/categoryRoutes.js";
+import buyRouter from "./routes/buyRoutes.js";
+import ratingRouter from "./routes/ratingRoutes.js";
+import userRouter from "./routes/userRoutes.js";
+import addressRouter from "./routes/addressRoutes.js";
+import cartRouter from "./routes/cartRoutes.js";
+import wishlistRouter from "./routes/wishlistRoutes.js";
+import paymentRouter from "./routes/paymentRoutes.js";
+import stripeRouter from "./routes/stripeRoutes.js";
+import protectUserRoutes from "./middlewares/protectUserRoutes.js";
+import globalMiddlewares from "./middlewares/globalMiddlwares.js";
+import webhookCheckout from "./controllers/payment/webhookCheckout.js";
+import connectToDB from "./lib/connectToDB.js";
 
-const PORT = environment.PORT || 8080;
-export let isDatabaseConnected = false;
+const app = express();
 
-if (environment.NODE_ENV === "production") {
-  console.log("Deployment is Successful");
-}
+// MARK: WEBHOOK-CHECKOUT
+app.post(
+  "/webhook-checkout",
+  express.raw({ type: "application/json" }),
+  webhookCheckout
+);
 
-console.log("Connecting to MongoDB...");
-console.log(`MongoDB URI: ${environment.MONGO_DB_URI}`);
-
-mongoose
-  .connect(environment.MONGO_DB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => {
-    console.log("Connected to MongoDB");
-    isDatabaseConnected = true;
-    app.listen(PORT, () => {
-      console.log(`Server is connected on port ${PORT}`);
-    });
-  })
-  .catch((err) => {
-    console.error("MongoDB connection error:", err);
-  });
-
-mongoose.connection.on("disconnected", () => {
-  isDatabaseConnected = false;
-  console.log("Disconnected from MongoDB");
+app.get("/", (req, res) => {
+  res.send("Hello from the server");
 });
 
-// mongoose.connect(environment.MONGO_DB_URI);
+// MARK: GLOBAL MIDDLEWARES
+globalMiddlewares(app);
 
-// // Handle connection events
-// mongoose.connection.on("connected", () => {
-//   console.log("Connected to MongoDB");
-//   isDatabaseConnected = true;
-//   app.listen(environment.PORT, () => {
-//     console.log(`Server is connected on port ${PORT}`);
-//   });
-// });
+// NOTE: DIFFERENT ROUTES
+app.use("/auth", authRouter);
+app.use("/products", productRouter);
+app.use("/category", categoryRouter);
+app.use("/ratings", protectUserRoutes, ratingRouter);
+app.use("/user", protectUserRoutes, userRouter);
+app.use("/address", protectUserRoutes, addressRouter);
+app.use("/buy", protectUserRoutes, buyRouter);
+app.use("/cart", protectUserRoutes, cartRouter);
+app.use("/wishlist", protectUserRoutes, wishlistRouter);
+app.use("/payment", protectUserRoutes, paymentRouter);
+app.use("/stripe", stripeRouter);
 
-// mongoose.connection.on("error", (err) => {
-//   console.error("MongoDB connection error:", err);
-// });
+// NOTE: UNIDENTIFIED ROUTES
+app.all("*", (req, res, next) => {
+  return next(
+    new HandleGlobalError(
+      `Somethings went wrong. Please check your Url - ${req.originalUrl}`,
+      500,
+      "Fail"
+    )
+  );
+});
 
-// mongoose.connection.on("disconnected", () => {
-//   isDatabaseConnected = false;
-//   console.log("Disconnected from MongoDB");
-// });
+//  NOTE: GLOBAL ERROR HANDLER
+app.use(globalErrorHandler);
 
-// Export the app instance for Vercel
-export default app;
+export default async (req, res) => {
+  await connectToDB();
+  app(req, res);
+};
