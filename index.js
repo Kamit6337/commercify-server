@@ -21,6 +21,15 @@ import connectToDB from "./lib/connectToDB.js";
 
 const app = express();
 
+// Middleware for handling MongoDB connection
+const handleDBConnection = async (req, res, next) => {
+  await connectToDB();
+  next();
+};
+
+// Apply DB connection middleware to all routes
+app.use(handleDBConnection);
+
 // MARK: WEBHOOK-CHECKOUT
 app.post(
   "/webhook-checkout",
@@ -62,7 +71,4 @@ app.all("*", (req, res, next) => {
 //  NOTE: GLOBAL ERROR HANDLER
 app.use(globalErrorHandler);
 
-export default async (req, res) => {
-  await connectToDB();
-  app(req, res);
-};
+export default app;
