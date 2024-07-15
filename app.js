@@ -25,6 +25,10 @@ app.post(
   webhookCheckout
 );
 
+app.get("/", (req, res) => {
+  res.send("Hello from the server");
+});
+
 // MARK: GLOBAL MIDDLEWARES
 globalMiddlewares(app);
 
