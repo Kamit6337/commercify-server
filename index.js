@@ -7,12 +7,7 @@ import app from "./app.js";
 const PORT = environment.PORT || 8080;
 export let isDatabaseConnected = false;
 
-if (environment.NODE_ENV === "production") {
-  console.log("Deployment is Successful");
-}
-
 console.log("Connecting to MongoDB...");
-console.log(`MongoDB URI: ${environment.MONGO_DB_URI}`);
 
 mongoose
   .connect(environment.MONGO_DB_URI, {
