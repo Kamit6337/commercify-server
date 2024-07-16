@@ -3,7 +3,6 @@ dotenv.config();
 import { environment } from "./utils/environment.js";
 import app from "./app.js";
 import connectToDB from "./lib/connectToDB.js";
-
 const PORT = environment.PORT || 8080;
 
 console.log("Connecting to MongoDB...");

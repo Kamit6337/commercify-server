@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/node";
 import express from "express";
 import globalErrorHandler from "./middlewares/globalErrorHandler.js";
 import HandleGlobalError from "./utils/HandleGlobalError.js";
@@ -44,6 +45,9 @@ app.use("/cart", protectUserRoutes, cartRouter);
 app.use("/wishlist", protectUserRoutes, wishlistRouter);
 app.use("/payment", protectUserRoutes, paymentRouter);
 app.use("/stripe", stripeRouter);
+
+// The error handler must be registered before any other error middleware and after all controllers
+Sentry.setupExpressErrorHandler(app);
 
 // NOTE: UNIDENTIFIED ROUTES
 app.all("*", (req, res, next) => {
