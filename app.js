@@ -15,18 +15,8 @@ import stripeRouter from "./routes/stripeRoutes.js";
 import protectUserRoutes from "./middlewares/protectUserRoutes.js";
 import globalMiddlewares from "./middlewares/globalMiddlwares.js";
 import webhookCheckout from "./controllers/payment/webhookCheckout.js";
-import connectToDB from "./lib/connectToDB.js";
 
 const app = express();
-
-// Middleware for handling MongoDB connection
-const handleDBConnection = async (req, res, next) => {
-  await connectToDB();
-  next();
-};
-
-// Apply DB connection middleware to all routes
-app.use(handleDBConnection);
 
 // MARK: WEBHOOK-CHECKOUT
 app.post(
