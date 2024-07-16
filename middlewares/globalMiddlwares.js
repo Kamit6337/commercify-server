@@ -9,7 +9,12 @@ import expressSessionOptions from "../utils/expressSessionOptions.js";
 const globalMiddlewares = (app) => {
   // app.use(databaseConnection);
 
-  app.use(cors(corsOptions));
+  app.use(
+    cors({
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+      credentials: true,
+    })
+  );
 
   app.use(session(expressSessionOptions));
 
