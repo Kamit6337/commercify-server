@@ -41,6 +41,8 @@ const webhookCheckout = catchAsyncError(async (request, response) => {
   const session = event.data.object;
   const { client_reference_id, metadata, id: stripeId } = session;
 
+  console.log("metadata", metadata);
+
   const {
     products,
     address: addressId,
@@ -50,6 +52,8 @@ const webhookCheckout = catchAsyncError(async (request, response) => {
   await connectToDB();
 
   const findAddress = await Address.findOne({ _id: addressId }).lean();
+
+  console.log("findAddress", findAddress);
 
   const { name, mobile, address, district, state, country, dial_code } =
     findAddress;
@@ -63,6 +67,8 @@ const webhookCheckout = catchAsyncError(async (request, response) => {
     dial_code,
     state,
   });
+
+  console.log("addNewAddress", addNewAddress);
 
   await Promise.all(
     products.map(async (product) => {
