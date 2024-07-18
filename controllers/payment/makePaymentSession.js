@@ -12,6 +12,7 @@ const Stripe = stripe(environment.STRIPE_SECRET_KEY);
 
 const makePaymentSession = catchAsyncError(async (req, res, next) => {
   const user = req.user;
+  const userId = req.userId;
   const CHECKOUT_SESSION_ID = generateUniqueId();
   const { products, address: addressId, code, exchangeRate, symbol } = req.body;
 
@@ -114,11 +115,11 @@ const makePaymentSession = catchAsyncError(async (req, res, next) => {
     success_url: `${environment.CLIENT_URL}/payment/success?sessionId=${CHECKOUT_SESSION_ID}`,
     cancel_url: environment.CLIENT_URL + "/payment/cancel",
     customer: customer.id,
-    client_reference_id: req.userId,
+    client_reference_id: userId,
     mode: "payment",
     line_items: lineItems,
     metadata: {
-      willBuyProducts : JSON.stringify(willBuyProducts)
+      willBuyProducts: JSON.stringify(willBuyProducts),
     },
   });
 
