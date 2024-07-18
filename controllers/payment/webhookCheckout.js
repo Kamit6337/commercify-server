@@ -40,7 +40,11 @@ const webhookCheckout = catchAsyncError(async (request, response) => {
   const session = event.data.object;
   const { client_reference_id, metadata, id: stripeId } = session;
 
-  const { products, address: addressId, sessionId } = JSON.parse(metadata);
+  const {
+    products,
+    address: addressId,
+    sessionId,
+  } = JSON.parse(metadata.willBuyProducts);
 
   const findAddress = await Address.findOne({ _id: addressId }).lean();
 
