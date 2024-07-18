@@ -4,6 +4,8 @@ import verifyOtpAndUpdate from "../controllers/userController/verifyOtpAndUpdate
 
 const router = express.Router();
 
-router.route("/").post(updateUserProfile).patch(verifyOtpAndUpdate);
+router.route("/").post(updateUserProfile);
+
+router.post("/update/verify-otp", verifyOtpAndUpdate);
 
 export default router;

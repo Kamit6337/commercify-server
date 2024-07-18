@@ -9,6 +9,8 @@ const afterSuccessfulPayment = catchAsyncError(async (req, res, next) => {
     return next(new HandleGlobalError("Please provide ID", 404));
   }
 
+  console.log("sessionId", sessionId);
+
   const products = await Buy.find({
     sessionId,
   })

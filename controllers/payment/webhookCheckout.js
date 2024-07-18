@@ -7,6 +7,7 @@ import nodemailer from "nodemailer";
 import ejs from "ejs";
 import path from "path";
 import User from "../../models/UserModel.js";
+import connectToDB from "../../lib/connectToDB.js";
 
 const Stripe = stripe(environment.STRIPE_SECRET_KEY);
 const webhookSecretKey = environment.STRIPE_WEBHOOK_SECRET_KEY;
@@ -33,7 +34,7 @@ const webhookCheckout = catchAsyncError(async (request, response) => {
 
   // Handle the event
   if (event.type !== "checkout.session.completed") {
-    response.send();
+    response.send("Error occur");
     return;
   }
 
@@ -45,6 +46,8 @@ const webhookCheckout = catchAsyncError(async (request, response) => {
     address: addressId,
     sessionId,
   } = JSON.parse(metadata.willBuyProducts);
+
+  await connectToDB();
 
   const findAddress = await Address.findOne({ _id: addressId }).lean();
 
@@ -76,31 +79,31 @@ const webhookCheckout = catchAsyncError(async (request, response) => {
     })
   );
 
-  const findUser = await User.findOne({ _id: client_reference_id }).lean();
+  // const findUser = await User.findOne({ _id: client_reference_id }).lean();
 
-  // Render HTML template with dynamic OTP
-  const htmlTemplate = await ejs.renderFile(
-    path.join("views", "userBuyProducts.ejs"),
-    {
-      products,
-    }
-  );
+  // // Render HTML template with dynamic OTP
+  // const htmlTemplate = await ejs.renderFile(
+  //   path.join("views", "userBuyProducts.ejs"),
+  //   {
+  //     products,
+  //   }
+  // );
 
-  // Set up email options
-  const mailOptions = {
-    from: `Commercify ${environment.MY_GMAIL_ID}`,
-    to: findUser.email,
-    subject: "Commercify: Your order summary",
-    html: htmlTemplate,
-  };
+  // // Set up email options
+  // const mailOptions = {
+  //   from: `Commercify ${environment.MY_GMAIL_ID}`,
+  //   to: findUser.email,
+  //   subject: "Commercify: Your order summary",
+  //   html: htmlTemplate,
+  // };
 
-  // Send email
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      return res.status(500).json({ error: "Error sending email" });
-    }
-    response.json({ message: "Email sent successfully", info });
-  });
+  // // Send email
+  // transporter.sendMail(mailOptions, (error, info) => {
+  //   if (error) {
+  //     return res.status(500).json({ error: "Error sending email" });
+  //   }
+  //   response.json({ message: "Email sent successfully", info });
+  // });
 
   // Return a 200 response to acknowledge receipt of the event
   response.send();

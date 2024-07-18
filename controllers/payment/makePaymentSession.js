@@ -117,6 +117,9 @@ const makePaymentSession = catchAsyncError(async (req, res, next) => {
     customer: customer.id,
     client_reference_id: userId,
     mode: "payment",
+    invoice_creation: {
+      enabled: true,
+    },
     line_items: lineItems,
     metadata: {
       willBuyProducts: JSON.stringify(willBuyProducts),
