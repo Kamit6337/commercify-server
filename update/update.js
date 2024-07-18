@@ -6,6 +6,7 @@ import productData from "../data/productData.js";
 import Product from "../models/ProductModel.js";
 import Address from "../models/AddressModel.js";
 import Buy from "../models/BuyModel.js";
+import categoryData from "../data/categoryData.js";
 
 mongoose.connect(environment.MONGO_DB_URI);
 
@@ -21,5 +22,16 @@ mongoose.connection.on("disconnected", () => {
 mongoose.connection.on("connected", async () => {
   console.log("Connected to MongoDB");
 
-  mongoose.connection.close();
+  try {
+    const deleteAddress = await Address.deleteMany({
+      user: null,
+    });
+
+    console.log("deleteAddress", deleteAddress);
+
+    mongoose.connection.close();
+  } catch (error) {
+    console.error("Error processing image:", error);
+    mongoose.connection.close();
+  }
 });

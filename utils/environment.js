@@ -19,4 +19,7 @@ export const environment = {
   STRIPE_WEBHOOK_SECRET_KEY: process.env.STRIPE_WEBHOOK_SECRET_KEY,
   MY_GMAIL_ID: process.env.MY_GMAIL_ID,
   MY_GMAIL_PASSWORD: process.env.MY_GMAIL_PASSWORD,
+  AWS_S3_ACCESS_KEY_ID: process.env.AWS_S3_ACCESS_KEY_ID,
+  AWS_S3_ACCESS_KEY_SECRET: process.env.AWS_S3_ACCESS_KEY_SECRET,
+  AWS_S3_REGION: process.env.AWS_S3_REGION,
 };

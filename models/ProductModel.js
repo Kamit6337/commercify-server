@@ -18,14 +18,6 @@ const productSchema = new Schema(
       type: Number,
       default: 0,
     },
-    stock: {
-      type: Number,
-      default: 0,
-    },
-    brand: {
-      type: String,
-      default: null,
-    },
     deliveredBy: {
       type: Number,
       default: null,
@@ -38,11 +30,14 @@ const productSchema = new Schema(
       type: String,
       required: [true, "You must provide thumbnail for your product"],
     },
-    images: [
-      {
-        type: String,
-      },
-    ],
+    rate: {
+      type: Number,
+      default: 0,
+    },
+    rateCount: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,
