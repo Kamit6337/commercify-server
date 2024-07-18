@@ -18,6 +18,11 @@ const buySchema = new mongoose.Schema(
       required: true,
       select: false,
     },
+    stripeId: {
+      type: String,
+      required: true,
+      select: false,
+    },
     price: {
       type: Number,
       required: true,

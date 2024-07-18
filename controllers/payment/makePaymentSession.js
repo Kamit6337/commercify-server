@@ -12,7 +12,6 @@ const Stripe = stripe(environment.STRIPE_SECRET_KEY);
 
 const makePaymentSession = catchAsyncError(async (req, res, next) => {
   const user = req.user;
-  const userId = req.userId;
   const CHECKOUT_SESSION_ID = generateUniqueId();
   const { products, address: addressId, code, exchangeRate, symbol } = req.body;
 
@@ -30,7 +29,7 @@ const makePaymentSession = catchAsyncError(async (req, res, next) => {
 
   const willBuyProducts = {
     products: [],
-    address: { ...findAddress },
+    address: addressId,
     sessionId: CHECKOUT_SESSION_ID,
   };
 
@@ -57,17 +56,11 @@ const makePaymentSession = catchAsyncError(async (req, res, next) => {
 
     // Use findOneAndUpdate to create the Buy and populate the product and address fields in one go
     const obj = {
-      user: userId,
       product: _id,
       price: Number(discountedPriceWithoutExchangeRate),
       quantity: Number(findQuantity.quantity),
       exchangeRate: Number(exchangeRate),
       deliveredDate: dateInMilli(Number(deliveredBy)),
-      name: title,
-      image: thumbnail,
-      description: description,
-      showPrice: discountedPrice,
-      symbol: symbol,
     };
 
     willBuyProducts.products.push(obj);
@@ -124,9 +117,7 @@ const makePaymentSession = catchAsyncError(async (req, res, next) => {
     client_reference_id: req.userId,
     mode: "payment",
     line_items: lineItems,
-    metadata: {
-      willBuyProducts: JSON.stringify(willBuyProducts),
-    },
+    metadata: JSON.stringify(willBuyProducts),
   });
 
   res.status(200).json({

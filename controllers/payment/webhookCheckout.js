@@ -38,14 +38,11 @@ const webhookCheckout = catchAsyncError(async (request, response) => {
   }
 
   const session = event.data.object;
-  const { client_reference_id, metadata } = session;
+  const { client_reference_id, metadata, id: stripeId } = session;
 
-  // Parse willBuyProducts from metadata
-  const {
-    products,
-    address: findAddress,
-    sessionId,
-  } = JSON.parse(metadata.willBuyProducts);
+  const { products, address: addressId, sessionId } = JSON.parse(metadata);
+
+  const findAddress = await Address.findOne({ _id: addressId }).lean();
 
   const { name, mobile, address, district, state, country, dial_code } =
     findAddress;
@@ -64,15 +61,10 @@ const webhookCheckout = catchAsyncError(async (request, response) => {
     products.map(async (product) => {
       const newProduct = { ...product };
 
-      delete newProduct.name;
-      delete newProduct.image;
-      delete newProduct.description;
-      delete newProduct.showPrice;
-      delete newProduct.symbol;
-
       await Buy.create({
         ...newProduct,
         sessionId,
+        stripeId,
         user: client_reference_id,
         address: addNewAddress._id,
       });
