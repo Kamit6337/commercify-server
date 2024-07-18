@@ -3,23 +3,10 @@ import { environment } from "../../utils/environment.js";
 import catchAsyncError from "../../lib/catchAsyncError.js";
 import Buy from "../../models/BuyModel.js";
 import Address from "../../models/AddressModel.js";
-import nodemailer from "nodemailer";
-import ejs from "ejs";
-import path from "path";
-import User from "../../models/UserModel.js";
 import connectToDB from "../../lib/connectToDB.js";
 
 const Stripe = stripe(environment.STRIPE_SECRET_KEY);
 const webhookSecretKey = environment.STRIPE_WEBHOOK_SECRET_KEY;
-
-// Set up nodemailer transporter
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: environment.MY_GMAIL_ID,
-    pass: environment.MY_GMAIL_PASSWORD,
-  },
-});
 
 const webhookCheckout = catchAsyncError(async (request, response) => {
   const sig = request.headers["stripe-signature"];
@@ -41,8 +28,6 @@ const webhookCheckout = catchAsyncError(async (request, response) => {
   const session = event.data.object;
   const { client_reference_id, metadata, id: stripeId } = session;
 
-  console.log("metadata", metadata);
-
   const {
     products,
     address: addressId,
@@ -52,8 +37,6 @@ const webhookCheckout = catchAsyncError(async (request, response) => {
   await connectToDB();
 
   const findAddress = await Address.findOne({ _id: addressId }).lean();
-
-  console.log("findAddress", findAddress);
 
   const { name, mobile, address, district, state, country, dial_code } =
     findAddress;
@@ -67,8 +50,6 @@ const webhookCheckout = catchAsyncError(async (request, response) => {
     dial_code,
     state,
   });
-
-  console.log("addNewAddress", addNewAddress);
 
   await Promise.all(
     products.map(async (product) => {
@@ -84,32 +65,6 @@ const webhookCheckout = catchAsyncError(async (request, response) => {
       return null;
     })
   );
-
-  // const findUser = await User.findOne({ _id: client_reference_id }).lean();
-
-  // // Render HTML template with dynamic OTP
-  // const htmlTemplate = await ejs.renderFile(
-  //   path.join("views", "userBuyProducts.ejs"),
-  //   {
-  //     products,
-  //   }
-  // );
-
-  // // Set up email options
-  // const mailOptions = {
-  //   from: `Commercify ${environment.MY_GMAIL_ID}`,
-  //   to: findUser.email,
-  //   subject: "Commercify: Your order summary",
-  //   html: htmlTemplate,
-  // };
-
-  // // Send email
-  // transporter.sendMail(mailOptions, (error, info) => {
-  //   if (error) {
-  //     return res.status(500).json({ error: "Error sending email" });
-  //   }
-  //   response.json({ message: "Email sent successfully", info });
-  // });
 
   // Return a 200 response to acknowledge receipt of the event
   response.send();
