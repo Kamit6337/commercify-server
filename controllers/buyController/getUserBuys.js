@@ -21,7 +21,6 @@ const getUserBuys = catchAsyncError(async (req, res, next) => {
         !isDelivered &&
         new Date(deliveredDate).getTime() <= Date.now()
       ) {
-        console.log("entered here");
         const updateBuy = await Buy.findOneAndUpdate(
           {
             _id: String(_id),
